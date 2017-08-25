@@ -1,38 +1,38 @@
-version: '2' # version of docker-compose to use
+version: '3'
 
-services: # configuring each container
-  db: # name of our mysql container
-    image: mariadb # which image to pull, in this case specifying v. 5.7
-    volumes: # data to map to the container
-      - ./data:/docker-entrypoint-initdb.d # where to find our data -- we'll talk more about this
-    restart: always # always restart the container after reboot
-    environment: # environment variables -- mysql options in this case
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: root
-      MYSQL_PASSWORD: pass
+services:
+   db:
+     image: mysql:5.7
+     volumes:
+       - ./db_data:/var/lib/mysql
+       - ./data:/docker-entrypoint-initdb.d # where to find our data -- we'll talk more about this
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: mysqlrootpass
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
 
-  wordpress: # name of our wordpress container
-    depends_on: # container dependencies that need to be running first
-      - db
-    image: wordpress:latest # image used by our container
-    ports:
-      - "80:80" # setting our ports for networking
-    restart: always
-    environment:
-      WORDPRESS_DB_HOST: db:3306 # default mysql port
-      WORDPRESS_DB_PASSWORD: pass # matches the password set in the db container
-    volumes: # this is where we tell Docker what to pay attention to
-      - ./wp-content/themes/understrap:/var/www/html/wp-content/themes/understrap # mapping our custom theme to the container
-      - ./wp-content/plugins:/var/www/html/wp-content/plugins # map our plugins to the container
-      - ./wp-content/uploads:/var/www/html/wp-content/uploads # map our uploads to the container
-  phpmyadmin:
-    image: corbinu/docker-phpmyadmin
-    links:
-     - db
-    ports:
-     - "8181:80"
-    environment:
-     MYSQL_USERNAME: root
-     MYSQL_ROOT_PASSWORD: rootpass
-    restart: always
+   wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "80:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+     volumes:
+       - ./html:/var/www/html/ # map all html
+   phpmyadmin:
+      image: phpmyadmin/phpmyadmin
+      container_name: phpmyadmin
+      environment:
+       - PMA_ARBITRARY=1
+      restart: always
+      ports:
+       - 8181:80
+      volumes:
+       - /sessions
